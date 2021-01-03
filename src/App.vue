@@ -1,15 +1,20 @@
 <template>
-	{{ radios }}
+	<div class="app">
+		<radio-table :radios="radios" />
+	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from "vue";
-import { apiUri } from "./config/api";
+import RadioTable from "./components/RadioTable.vue";
 
 export default defineComponent({
 	name: "App",
+	components: {
+		RadioTable,
+	},
 	setup() {
-		// Local state
+		RadioTable; // Local state
 		const radios = ref([]);
 
 		// Get all radios from api
@@ -38,12 +43,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-#app {
-	font-family: Avenir, Helvetica, Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	text-align: center;
-	color: #2c3e50;
-	margin-top: 60px;
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: "Roboto", sans-serif;
 }
 </style>
