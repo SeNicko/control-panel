@@ -13,16 +13,8 @@
 			<tr v-for="radio in radiosTableData" :key="radio.Id" class="table__row">
 				<td v-for="(value, key, index) in radio" :key="index" class="table__field">
 					<I v-if="key === 'Type' || key === 'WorkingMode'" :icon="staticIcons.get(`${key}-${value}`)" />
-					<I
-						v-else-if="key === 'BatteryLevel'"
-						:icon="getBatteryIcon(value, 'battery')"
-						:color="getColorFromPercentage(value)"
-					/>
-					<I
-						v-else-if="key === 'Strength'"
-						:icon="getSignalIcon(value, 'network-strength')"
-						:color="getColorFromPercentage(value * 10)"
-					/>
+					<I v-else-if="key === 'BatteryLevel'" :icon="getBatteryIcon(value)" :color="getColorFromPercentage(value)" />
+					<I v-else-if="key === 'Strength'" :icon="getSignalIcon(value)" :color="getColorFromPercentage(value * 10)" />
 					<span v-else>{{ value }}</span>
 				</td>
 			</tr>
@@ -34,6 +26,7 @@
 import { defineComponent, computed } from "vue";
 import { useStore } from "vuex";
 import { getColorFromPercentage } from "@/utils/percentage";
+import { staticIcons, getBatteryIcon, getSignalIcon } from "@/utils/icons";
 
 export default defineComponent({
 	name: "Table",
@@ -41,6 +34,7 @@ export default defineComponent({
 		// Gain access to the vuex store
 		const store = useStore();
 
+		// Get radios from store
 		const radios = computed(() => store.state.radios);
 
 		// Declare table of headers for easier html rendering
@@ -59,27 +53,6 @@ export default defineComponent({
 				};
 			})
 		);
-
-		const staticIcons = new Map<string, string>([
-			["Type-Car", "taxi"],
-			["Type-BaseStation", "domain"],
-			["Type-Portable", "devices"],
-			["WorkingMode-Voice", "account-voice"],
-			["WorkingMode-Data", "database-export-outline"],
-			["WorkingMode-Idle", "sleep"],
-		]);
-
-		const getBatteryIcon = (percentage: number, iconName: string): string => {
-			if (percentage === 100) return iconName;
-			else if (percentage === 0) return `${iconName}-outline`;
-			else return `${iconName}-${Math.round(percentage / 10) * 10}`;
-		};
-
-		const getSignalIcon = (strength: number, iconName: string): string => {
-			strength = Math.round(strength / 2.5);
-			if (strength === 0) return `${iconName}-outline`;
-			else return `${iconName}-${strength}`;
-		};
 
 		return {
 			headers,

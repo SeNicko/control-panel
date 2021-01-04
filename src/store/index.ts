@@ -4,12 +4,14 @@ import { Radio } from "../interfaces/radio";
 // Typing of store
 export type State = {
 	radios: Radio[];
+	selectedRadio: Radio;
 };
 
 // Export store
 export default createStore({
 	state: {
 		radios: [] as Radio[],
+		radio: null as null | Radio,
 	},
 	mutations: {
 		setRadios(state, payload: Radio[]) {

@@ -1,5 +1,6 @@
 <template>
 	<div class="app">
+		<Map />
 		<radio-table />
 	</div>
 </template>
@@ -8,11 +9,13 @@
 import { defineComponent, onMounted } from "vue";
 import { useStore } from "vuex";
 import RadioTable from "./components/RadioTable.vue";
+import Map from "./components/Map.vue";
 
 export default defineComponent({
 	name: "App",
 	components: {
 		RadioTable,
+		Map,
 	},
 	setup() {
 		// Get access to store
