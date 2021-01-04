@@ -1,11 +1,12 @@
 <template>
 	<div class="app">
-		<radio-table :radios="radios" />
+		<radio-table />
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, onMounted } from "vue";
+import { useStore } from "vuex";
 import RadioTable from "./components/RadioTable.vue";
 
 export default defineComponent({
@@ -14,31 +15,23 @@ export default defineComponent({
 		RadioTable,
 	},
 	setup() {
-		RadioTable; // Local state
-		const radios = ref([]);
+		// Get access to store
+		const store = useStore();
 
-		// TODO: Move data to vuex for easier access in components
-		// Get all radios from api
-		const getAllDevices = async () => {
+		const fetchRadiosData = async () => {
 			try {
-				const response = await fetch("/radios");
-				const data = await response.json();
-				radios.value = data;
+				store.dispatch("getRadios");
 			} catch (err) {
-				// TODO: handle in ui
-				console.error("An error has occured", err);
+				console.error(err);
 			}
 		};
 
 		onMounted(() => {
-			// Fetch radios on app load
-			getAllDevices();
+			fetchRadiosData();
+			setInterval(() => {
+				fetchRadiosData();
+			}, 5 * 1000);
 		});
-
-		return {
-			// Return radios in order to acces them in component body
-			radios,
-		};
 	},
 });
 </script>

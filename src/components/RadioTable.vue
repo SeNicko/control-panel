@@ -25,23 +25,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed } from "vue";
+import { defineComponent, computed } from "vue";
+import { useStore } from "vuex";
 
-import { Radio } from "../interfaces/radio";
 import { getColorFromPercentage } from "@/utils/percentage";
 
 export default defineComponent({
 	name: "Table",
-	props: {
-		radios: Array as PropType<Radio[]>,
-	},
-	setup(props) {
+	setup() {
+		// Gain access to the vuex store
+		const store = useStore();
+
+		const radios = computed(() => store.state.radios);
+
 		// Declare table of headers for easier html rendering
 		const headers = ["nazwa", "numer seryjny", "typ", "sygnał", "bateria", "tryb"];
 
 		// Get data for table (without Position and Id)
 		const radiosTableData = computed(() =>
-			props.radios?.map(({ Name, Type, SerialNumber, Strength, BatteryLevel, WorkingMode }) => {
+			radios.value.map(({ Name, Type, SerialNumber, Strength, BatteryLevel, WorkingMode }) => {
 				return {
 					Name,
 					SerialNumber,
