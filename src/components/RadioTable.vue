@@ -1,33 +1,38 @@
 <template>
-	<table>
-		<tr>
-			<th v-for="header in headers" :key="header">
-				{{ header }}
-			</th>
-		</tr>
-		<tr v-for="radio in radiosTableData" :key="radio.Id">
-			<td v-for="(value, key, index) in radio" :key="index">
-				<I v-if="key === 'Type' || key === 'WorkingMode'" :icon="staticIcons.get(`${key}-${value}`)" />
-				<I
-					v-else-if="key === 'BatteryLevel'"
-					:icon="getBatteryIcon(value, 'battery')"
-					:color="getColorFromPercentage(value)"
-				/>
-				<I
-					v-else-if="key === 'Strength'"
-					:icon="getSignalIcon(value, 'network-strength')"
-					:color="getColorFromPercentage(value * 10)"
-				/>
-				<span v-else>{{ value }}</span>
-			</td>
-		</tr>
+	<table class="table">
+		<thead>
+			<tr class="table__row table__row--header">
+				<th v-for="header in headers" :key="header" class="table__field table__field--header">
+					<span>
+						{{ header }}
+					</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr v-for="radio in radiosTableData" :key="radio.Id" class="table__row">
+				<td v-for="(value, key, index) in radio" :key="index" class="table__field">
+					<I v-if="key === 'Type' || key === 'WorkingMode'" :icon="staticIcons.get(`${key}-${value}`)" />
+					<I
+						v-else-if="key === 'BatteryLevel'"
+						:icon="getBatteryIcon(value, 'battery')"
+						:color="getColorFromPercentage(value)"
+					/>
+					<I
+						v-else-if="key === 'Strength'"
+						:icon="getSignalIcon(value, 'network-strength')"
+						:color="getColorFromPercentage(value * 10)"
+					/>
+					<span v-else>{{ value }}</span>
+				</td>
+			</tr>
+		</tbody>
 	</table>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
 import { useStore } from "vuex";
-
 import { getColorFromPercentage } from "@/utils/percentage";
 
 export default defineComponent({
@@ -71,8 +76,9 @@ export default defineComponent({
 		};
 
 		const getSignalIcon = (strength: number, iconName: string): string => {
+			strength = Math.round(strength / 2.5);
 			if (strength === 0) return `${iconName}-outline`;
-			else return `${iconName}-${Math.round(strength / 2.5)}`;
+			else return `${iconName}-${strength}`;
 		};
 
 		return {
@@ -87,4 +93,16 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.table {
+	border-collapse: collapse;
+
+	&__row {
+	}
+
+	&__field {
+		text-align: center;
+		margin: 25px 0;
+	}
+}
+</style>
