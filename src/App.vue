@@ -17,6 +17,7 @@ export default defineComponent({
 		RadioTable; // Local state
 		const radios = ref([]);
 
+		// TODO: Move data to vuex for easier access in components
 		// Get all radios from api
 		const getAllDevices = async () => {
 			try {
