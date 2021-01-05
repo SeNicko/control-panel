@@ -1,5 +1,6 @@
 // Import material design icons
 import "@mdi/font/css/materialdesignicons.css";
+import "leaflet/dist/leaflet.css";
 
 import { createApp } from "vue";
 import store from "./store";

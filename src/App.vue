@@ -23,7 +23,7 @@ export default defineComponent({
 
 		const fetchRadiosData = async () => {
 			try {
-				await store.dispatch("getRadios");
+				await store.dispatch("fetchRadios");
 			} catch (err) {
 				//TODO: Handle error
 			}

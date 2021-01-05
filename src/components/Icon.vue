@@ -1,5 +1,5 @@
 <template>
-	<i class="mdi" :class="'mdi-' + icon" :style="{ color: color ? color : 'black' }" />
+	<div class="mdi" :class="'mdi-' + icon" :style="{ color: color ? color : 'black' }" />
 </template>
 
 <script lang="ts">

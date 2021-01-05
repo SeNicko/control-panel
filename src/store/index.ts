@@ -11,18 +11,26 @@ export type State = {
 export default createStore({
 	state: {
 		radios: [] as Radio[],
-		radio: null as null | Radio,
+		selectedRadio: null as null | Radio,
 	},
 	mutations: {
-		setRadios(state, payload: Radio[]) {
-			state.radios = payload;
+		fetchRadios(state, radios: Radio[]) {
+			state.radios = radios;
+		},
+		selectRadio(state, radio) {
+			state.selectedRadio = radio;
 		},
 	},
 	actions: {
-		async getRadios({ commit }) {
+		async fetchRadios({ commit }) {
 			const response = await fetch("/radios");
 			const payload = await response.json();
-			commit("setRadios", payload);
+			commit("fetchRadios", payload);
+		},
+		async selectRadio({ commit, state }, id) {
+			const radiosCopy: Radio[] = state.radios;
+			const selectedRadio = radiosCopy.find((radio) => radio.Id === id);
+			commit("selectRadio", selectedRadio);
 		},
 	},
 	getters: {
