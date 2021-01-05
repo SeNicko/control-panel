@@ -27,13 +27,12 @@ export default defineComponent({
 			} catch (err) {
 				//TODO: Handle error
 			}
+
+			setTimeout(fetchRadiosData, 5 * 1000);
 		};
 
 		onMounted(() => {
 			fetchRadiosData();
-			setInterval(() => {
-				fetchRadiosData();
-			}, 5 * 1000);
 		});
 	},
 });

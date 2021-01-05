@@ -8,6 +8,7 @@ export const staticIcons = new Map<string, string>([
 ]);
 
 export const getBatteryIcon = (percentage: number): string => {
+	percentage = Math.round(percentage / 10) * 10;
 	if (percentage === 100) return "battery";
 	else if (percentage === 0) return "battery-outline";
 	else return `battery-${Math.round(percentage / 10) * 10}`;

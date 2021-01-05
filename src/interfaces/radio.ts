@@ -6,7 +6,7 @@ export interface Radio {
 	Strength: number;
 	BatteryLevel: number;
 	WorkingMode: string;
-	Position?: {
+	Position: {
 		Lat: string;
 		Lon: string;
 	};
