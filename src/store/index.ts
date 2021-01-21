@@ -18,7 +18,9 @@ export default createStore({
 			state.radios = radios;
 		},
 		selectRadio(state, id) {
-			state.selectedRadio = id;
+			// Be sure that radio with provided id exists
+			if(state.radios.find(radio => radio.Id === id))
+				state.selectedRadio = id;
 		},
 	},
 	actions: {
