@@ -1,29 +1,29 @@
-# control-panel
+# Control Panel
 
-## Project setup
-```
-yarn install
-```
+---
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+## Uruchamianie aplikacji
 
-### Compiles and minifies for production
-```
-yarn build
-```
+### Włączenie serwera
 
-### Run your unit tests
-```
-yarn test:unit
-```
+Należy włączyć serwer dodany do zadania (lub nie lecz wtedy nie będą wyświetlane dane)
 
-### Lints and fixes files
-```
-yarn lint
-```
+### Instalowanie potrzebnych bibliotek
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Aby uzyć `yarn` należy wywołać komendę
+
+`yarn`
+
+albo w przypadku `npm`
+
+`npm i`
+
+### Aby uruchomić aplikację należy użyć komendy
+
+Aby uzyć `yarn` należy wywołać komendę
+
+`yarn serve`
+
+albo w przypadku `npm`
+
+`npm run serve`
