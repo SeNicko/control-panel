@@ -41,3 +41,5 @@ Aplikacja składa się z 2 części. Mapy oraz listy urządzeń pobieranych z ap
 Na mapie widoczne są wszystkie urządzenia, których pozycja jest aktualizowana na bierząco z danymi. Marker urządzenia to ikona przedstawiająca jego typ (Stacja, urządzenie mobilne) z tłem w kolorze zdrowia urządzenia. Wartość zdrowia urządzenia obliczyliśmy korzystając z poziomu baterii oraz aktualnego zasięgu.
 
 ### Zapobieganie błędom
+
+Jeżeli nastąpi błąd połączenia z bazą zostanie wyświetlony o nim komunikat.
