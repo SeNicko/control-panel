@@ -1,232 +1,258 @@
 <template>
-  <div class="stats" v-if="selectedRadio">
-    {{ selectedRadio.BatteryLevel }}% {{ selectedRadio.Strength }}
-    {{ selectedRadio.SerialNumber }}
-  </div>
-  <div id="map" class="map" />
+    <div id="map" class="map" />
 </template>
 
 <script lang="ts">
-import { useStore } from "vuex";
-import { computed, defineComponent, onMounted, watch } from "vue";
-import L, { LatLngExpression } from "leaflet";
-import { convertToLatLon } from "@/utils/position";
-import { staticIcons } from "@/utils/icons";
-import { getColorFromPercentage } from "@/utils/percentage";
-import { getDistance } from "@/utils/distance";
+import { useStore } from 'vuex';
+import { computed, defineComponent, onMounted, watch } from 'vue';
+import L, { LatLngExpression } from 'leaflet';
+import { convertToLatLon } from '@/utils/position';
+import { getDistance } from '@/utils/distance';
+import { generateIconMarker } from '../utils/mapMarker';
 
 export default defineComponent({
-  name: "Map",
-  setup() {
-    // Access store
-    const store = useStore();
-    // Get radios from store
-    const radios = computed(() => store.state.radios);
-    // Get selected radio from store
-    const selectedRadio = computed(() =>
-      store.state.radios.find((radio) => radio.Id === store.state.selectedRadio)
-    );
+    name: 'Map',
+    setup() {
+        const store = useStore();
+        const radios = computed(() => store.state.radios);
+        const selectedRadio = computed(() =>
+            store.state.radios.find(
+                (radio) => radio.Id === store.state.selectedRadio
+            )
+        );
 
-    // Leaflet map layer for markers
-    const radiosMarkersLayer = L.layerGroup();
-    // Leaflet map layer for distance lines
-    const radiosDistanceLayer = L.layerGroup();
-    // Map holder
-    let map: L.Map | null = null;
+        const radiosDistanceLayer = L.layerGroup();
+        const radiosMarkersLayer = L.layerGroup();
+        let map: L.Map | null = null;
 
-    // Selects radio with specified id
-    const selectRadio = (radioId: number) => {
-      store.commit("selectRadio", radioId); // Update store
-    };
+        // Set map focus to specified location
+        const setMapFocus = (position: { Lat: string; Lon: string }) => {
+            const cords: L.LatLngExpression = convertToLatLon(position);
+            if (map) map.panTo(cords); // If map was created set focus to cords
+        };
 
-    // Set map focus to specified location
-    const setMapFocus = (position: { Lat: string; Lon: string }) => {
-      const cords: L.LatLngExpression = convertToLatLon(position);
-      if (map) map.panTo(cords); // If map was created set focus to cords
-    };
+        const updateDistanceLayer = () => {
+            radiosDistanceLayer.clearLayers();
 
-    // Update distance layer
-    const updateDistanceLayer = () => {
-      // Clear layer (Markers are movign)
-      radiosDistanceLayer.clearLayers();
+            const distances: [number, number][] = [];
 
-      // For each radio create distance line from it to selected radio cords
-      radios.value.forEach(({ Position, Id }) => {
-        if (selectedRadio.value && Id !== selectedRadio.value.Id) {
-          const selectedRadioPosition = convertToLatLon(
-            selectedRadio.value.Position
-          );
-          const currentRadioPosition = convertToLatLon(Position);
-          // Create line
-          const line = new L.Polyline(
-            [selectedRadioPosition, currentRadioPosition],
-            {
-              color: "red",
-              weight: 3,
-              smoothFactor: 1,
+            radios.value.forEach(({ Position, Id }) => {
+                const currentRadioPosition = convertToLatLon(Position);
+                distances.push(currentRadioPosition);
+            });
+
+            if (selectedRadio.value && !selectedRadio.value.Name) {
+                const selectedRadioPosition = convertToLatLon(
+                    selectedRadio.value.Position
+                );
+
+                distances.sort(
+                    (a, b) =>
+                        getDistance(a, selectedRadioPosition) -
+                        getDistance(b, selectedRadioPosition)
+                );
+
+                for (let i = 0; i < 2; i++) {
+                    const line = new L.Polyline(
+                        [selectedRadioPosition, distances[i]],
+                        {
+                            color: 'black',
+                            weight: 2,
+                            dashArray: '10',
+                        }
+                    );
+
+                    line.bindTooltip(
+                        `${getDistance(
+                            selectedRadioPosition,
+                            distances[i]
+                        )} km`,
+                        { opacity: 1 }
+                    );
+
+                    radiosDistanceLayer.addLayer(line);
+                }
+            } else {
+                // For each radio create distance line from it to selected radio cords
+                radios.value.forEach(({ Position, Id }, i) => {
+                    if (selectedRadio.value && Id !== selectedRadio.value.Id) {
+                        const selectedRadioPosition = convertToLatLon(
+                            selectedRadio.value.Position
+                        );
+
+                        const line = new L.Polyline(
+                            [selectedRadioPosition, distances[i]],
+                            {
+                                color: 'black',
+                                weight: 2,
+                                dashArray: '10',
+                            }
+                        );
+
+                        line.bindTooltip(
+                            `${getDistance(
+                                selectedRadioPosition,
+                                distances[i]
+                            )} km`,
+                            { opacity: 1 }
+                        );
+
+                        radiosDistanceLayer.addLayer(line);
+                    }
+                });
             }
-          );
+        };
 
-          line.bindTooltip(
-            `${getDistance(
-              selectedRadioPosition,
-              currentRadioPosition
-            ).toString()} km`,
-            { opacity: 1 }
-          );
+        // Update map markers
+        const updateMarkersLayer = () => {
+            radiosMarkersLayer.clearLayers();
 
-          // Add line to layer
-          radiosDistanceLayer.addLayer(line);
-        }
-      });
-    };
+            // For each radio create radio and add it to the markers layer
+            radios.value.forEach((radio) => {
+                // Create marker
+                const icon = L.divIcon({
+                    className: 'divIcon',
+                    html: generateIconMarker(radio, selectedRadio.value),
+                    iconSize: [45, 45],
+                    iconAnchor: [22.5, 22.5],
+                });
 
-    // Update map markers
-    const updateMarkersLayer = () => {
-      // Clear layer (Markers are movign)
-      radiosMarkersLayer.clearLayers();
+                const position: L.LatLngExpression = convertToLatLon(
+                    radio.Position
+                );
+                const marker = L.marker(position, { icon });
 
-      // For each radio create radio and add it to the markers layer
-      radios.value.forEach(
-        ({ Name, Position, Id, Type, BatteryLevel, Strength }) => {
-          // Get icon name
-          const iconName = staticIcons.get(`Type-${Type}`);
-          // Get icon color
-          const iconColor = getColorFromPercentage(
-            (BatteryLevel + Strength * 10) / 2
-          );
-          // Create html for map marker
-          const html = `<span class='mdi mdi-${iconName} mark ${
-            selectedRadio.value?.Id === Id ? "mark--selected" : ""
-          }' style='color: ${iconColor};'/>`;
+                if (radio.Name)
+                    marker
+                        .bindTooltip(radio.Name, { opacity: 1 })
+                        .openTooltip();
 
-          // Create marker
-          const icon = L.divIcon({
-            className: "divIcon",
-            html,
-            iconSize: [50, 50],
-            iconAnchor: [25, 25],
-          });
+                // On marker click select new radio and update everything
+                marker.on('click', () => {
+                    if (selectedRadio.value?.Id !== radio.Id) {
+                        store.commit('selectRadio', radio.Id);
+                    } else {
+                        store.commit('deselectRadio');
+                    }
+                });
 
-          // Get position string to floating point numbers
-          const position: L.LatLngExpression = convertToLatLon(Position);
-          // Create marker
-          const marker = L.marker(position, { icon });
-          marker.bindTooltip(Name, { opacity: 1 }).openTooltip();
+                radiosMarkersLayer.addLayer(marker);
+            });
+        };
 
-          // On marker click select new radio and update everything
-          marker.on("click", () => {
-            selectRadio(Id);
-          });
+        // Watch for selected radio change
+        watch(
+            () => selectedRadio.value,
+            (radio, prevRadio) => {
+                updateMarkersLayer();
+                updateDistanceLayer();
 
-          // Add marker to markers layer
-          radiosMarkersLayer.addLayer(marker);
-        }
-      );
-    };
+                if (map && radio && radio.Id != prevRadio?.Id) {
+                    setMapFocus(radio.Position);
+                }
+            }
+        );
 
-    // Watch for selected radio change
-    watch(
-      () => selectedRadio.value,
-      (radio, prevRadio) => {
-        // check if map or radio is undefined
-        if (map && radio && radio.Id != prevRadio?.Id) {
-          // Set map focus to newly selected radio
-          setMapFocus(radio.Position);
-          updateMarkersLayer();
-          updateDistanceLayer();
-        }
-      }
-    );
+        // Watch for radios change
+        watch(
+            () => radios.value,
+            () => {
+                updateMarkersLayer();
+                updateDistanceLayer();
+            } // Updte markers
+        );
 
-    // Watch for radios change
-    watch(
-      () => radios.value,
-      () => {
-        updateMarkersLayer();
-        updateDistanceLayer();
-      } // Updte markers
-    );
+        const initMap = () => {
+            // Set center of map
+            const center: LatLngExpression = [50.049683, 19.944544];
+            const bounds = new L.LatLngBounds(
+                new L.LatLng(-90.0, -180.0),
+                new L.LatLng(90.0, 180.0)
+            );
 
-    // Map creating logic
-    const initMap = () => {
-      // Set center of map
-      const center: LatLngExpression = [50.049683, 19.944544];
-      const bounds = new L.LatLngBounds(
-        new L.LatLng(-90.0, -180.0),
-        new L.LatLng(90.0, 180.0)
-      );
+            map = L.map('map', {
+                maxBounds: bounds,
+                maxBoundsViscosity: 1.0,
+                minZoom: 3,
+            }).setView(center, 12);
 
-      // Assign new map to
-      map = L.map("map", {
-        maxBounds: bounds,
-        maxBoundsViscosity: 1.0,
-        minZoom: 3,
-      }).setView(center, 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            }).addTo(map);
+        };
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
-    };
+        // On component mount
+        onMounted(() => {
+            updateMarkersLayer();
+            initMap();
 
-    // On component mount
-    onMounted(() => {
-      updateMarkersLayer();
-      initMap(); // Create map
+            if (map) {
+                map.addLayer(radiosMarkersLayer);
+                map.addLayer(radiosDistanceLayer);
+            } // Add markers layer to map
+        });
 
-      if (map) {
-        map.addLayer(radiosMarkersLayer);
-        map.addLayer(radiosDistanceLayer);
-      } // Add markers layer to map
-    });
-
-    return {
-      selectedRadio,
-    };
-  },
+        return {
+            selectedRadio,
+        };
+    },
 });
 </script>
 
 <style lang="scss">
-$mapBackground: #343332;
-
 .map {
-  background: $mapBackground;
-  width: 100%;
-  height: 60vh;
-}
-
-.mark {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  color: white;
-  border-radius: 50%;
-  background: rgb(0, 0, 0);
-  width: 40px;
-  height: 40px;
-  padding: 10px;
-
-  &--selected {
-    border: 5px solid #ffffff;
-  }
+    width: 100%;
+    height: 60vh;
 }
 
 .stats {
-  width: 300px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  background: white;
-  position: absolute;
-  top: 20px;
-  margin: auto;
-  left: 0;
-  right: 0;
-  z-index: 9999;
+    width: 300px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    background: white;
+    position: absolute;
+    top: 20px;
+    margin: auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+}
+
+.marker {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+
+    &__icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        color: white;
+        border-radius: 50%;
+        background: white;
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+        color: black;
+
+        &--selected {
+            background: white;
+        }
+    }
+
+    &__distance {
+        position: absolute;
+        top: -40px;
+        background: white;
+        padding: 5px;
+        border-radius: 10px;
+    }
 }
 </style>

@@ -9,6 +9,6 @@ import Icon from "@/components/Icon.vue";
 
 // Create app
 createApp(App)
-	.use(store)
-	.component("icon", Icon)
-	.mount("#app");
+  .use(store)
+  .component("icon", Icon)
+  .mount("#app");
