@@ -152,21 +152,24 @@ export default defineComponent({
         const radios = computed(() => {
             let result = store.state.radios;
 
+            // Order radios in asc or desc order based on battery level
             if (query.BatteryLevel !== null) {
                 result = result.sort((a, b) => {
-                    if (query.BatteryLevel)
+                    if (query.BatteryLevel === true)
                         return b.BatteryLevel - a.BatteryLevel;
                     return a.BatteryLevel - b.BatteryLevel;
                 });
             }
 
+            // Order radio in asc or desc order based on strength
             if (query.Strength !== null) {
                 result = result.sort((a, b) => {
-                    if (query.Strength) return b.Strength - a.Strength;
+                    if (query.Strength === true) return b.Strength - a.Strength;
                     return a.Strength - b.Strength;
                 });
             }
 
+            // Order based on other parameters
             result = result.filter((radio: Radio) => {
                 if (radio.Name)
                     return (

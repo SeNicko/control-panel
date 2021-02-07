@@ -32,8 +32,10 @@ export default defineComponent({
         };
 
         const updateDistanceLayer = () => {
+            // Clear layer before redraw
             radiosDistanceLayer.clearLayers();
 
+            // Convert all readios position to LatLng
             const distances: [number, number][] = [];
 
             radios.value.forEach(({ Position, Id }) => {
@@ -41,18 +43,22 @@ export default defineComponent({
                 distances.push(currentRadioPosition);
             });
 
+            // If selected radio is not valid (don't have a name)
             if (selectedRadio.value && !selectedRadio.value.Name) {
                 const selectedRadioPosition = convertToLatLon(
                     selectedRadio.value.Position
                 );
 
+                // Sort distances
                 distances.sort(
                     (a, b) =>
                         getDistance(a, selectedRadioPosition) -
                         getDistance(b, selectedRadioPosition)
                 );
 
+                // Get two closest points
                 for (let i = 0; i < 2; i++) {
+                    // Create distance line
                     const line = new L.Polyline(
                         [selectedRadioPosition, distances[i]],
                         {
@@ -62,14 +68,7 @@ export default defineComponent({
                         }
                     );
 
-                    line.bindTooltip(
-                        `${getDistance(
-                            selectedRadioPosition,
-                            distances[i]
-                        )} km`,
-                        { opacity: 1 }
-                    );
-
+                    // Add line to layer
                     radiosDistanceLayer.addLayer(line);
                 }
             } else {
@@ -80,6 +79,7 @@ export default defineComponent({
                             selectedRadio.value.Position
                         );
 
+                        // Create distance line
                         const line = new L.Polyline(
                             [selectedRadioPosition, distances[i]],
                             {
@@ -87,14 +87,6 @@ export default defineComponent({
                                 weight: 2,
                                 dashArray: '10',
                             }
-                        );
-
-                        line.bindTooltip(
-                            `${getDistance(
-                                selectedRadioPosition,
-                                distances[i]
-                            )} km`,
-                            { opacity: 1 }
                         );
 
                         radiosDistanceLayer.addLayer(line);
@@ -187,10 +179,11 @@ export default defineComponent({
             updateMarkersLayer();
             initMap();
 
+            // Add markers layer to map
             if (map) {
                 map.addLayer(radiosMarkersLayer);
                 map.addLayer(radiosDistanceLayer);
-            } // Add markers layer to map
+            }
         });
 
         return {

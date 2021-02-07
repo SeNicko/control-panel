@@ -74,7 +74,6 @@ describe('utilities functions', () => {
         ];
 
         batteryLevel.forEach(({ entry, result }: PercentageTestEntry) => {
-            console.log(entry);
             expect(getSignalIcon(entry)).toBe(result);
         });
     });
